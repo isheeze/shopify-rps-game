@@ -1,0 +1,171 @@
+<div style="position: relative">
+  <div class="user">
+    <img data-value="0" src="{{ 'rock.png' | asset_img_url: 'x300' }}" width="150" height="150" loading="eager">
+    <img data-value="1" src="{{ 'paper.png' | asset_img_url: 'x300' }}" width="150" height="150" loading="eager">
+    <img data-value="2" src="{{ 'scissor.png' | asset_img_url: 'x300' }}" width="150" height="150" loading="eager">
+  </div>
+  <div class="computer">
+    <img src="{{ 'rock.png' | asset_img_url: 'x300' }}" width="150" height="150" loading="eager">
+    <img src="{{ 'paper.png' | asset_img_url: 'x300' }}" width="150" height="150" loading="eager">
+    <img src="{{ 'scissor.png' | asset_img_url: 'x300' }}" width="150" height="150" loading="eager">
+  </div>
+</div>
+<div class="modal">
+  <div class="overlay"></div>
+  <div class="txt"></div>
+  <div class="note"></div>
+  <button>Replay</button>
+</div>
+
+<style>
+  .user,
+  .computer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 50px auto;
+    gap: 20px;
+  }
+  .user img,
+  .computer img{
+    border-radius: 50%;
+    width: 30%;
+    max-width: 150px;
+    display: block;
+    transition: all .5s;
+  }
+.user img:hover,
+.user .selected {
+  transform: scale(1.2);
+  box-shadow: 0px 3px 33px -16px;
+}
+.user:has(> img.selected) img:not(.selected){
+  filter: grayscale(1);
+}
+.computer img{
+  opacity: 0;
+}
+.computer .selected{
+  opacity: 1;
+}
+.modal{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(10px);
+  border: 1px solid;
+  padding: 50px;
+  border-radius: 15px;
+  background: #ffffff7a;
+  width: 90%;
+  max-width: 500px;
+  display: none;
+}
+.modal.opened{
+  display: block;
+  animation: modalDisplay 1s;
+}
+.modal.opened .overlay{
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  display: block;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+.modal .txt{
+  font-family: monospace;
+  font-size: 80px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1;
+}
+.modal button{
+  margin: auto;
+  display: block;
+  background: none;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+.note{
+  text-align: center;
+  margin: 10px 0px;
+}
+.note span{
+  color: #076070;
+  font-weight: bolder;
+}
+@keyframes modalDisplay {
+  0%   {opacity: 0;}
+  90%  {opacity: 0;}
+  100% {opacity: 1;}
+}
+</style>
+<script>
+  const opts = document.querySelectorAll('.user img')
+  for(o of opts){
+      o.addEventListener('click',clickHandler)
+  }
+  function clickHandler(){
+      this.classList.add('selected')
+      compute(parseInt(this.dataset.value))
+  }
+  function compute(opt){
+      const txt = document.querySelector('.modal .txt')
+
+      const com = Math.floor(Math.random() * 3)
+      document.querySelectorAll('.computer img')[com].classList.add('selected')
+
+      if((opt == 0 && com == 2) || (opt == 1 && com == 0) || (opt == 2 && com == 1)){
+        txt.innerHTML = 'Win'
+        document.querySelector('.note').innerHTML = "{% if block.settings.code != blank and block.settings.discount != blank %}Use <span>{{ block.settings.code }}</span> for {{ block.settings.discount }}% discount{% endif %}"
+      }else if(opt == com){
+        txt.innerHTML = 'Draw'
+      }else{
+        txt.innerHTML = "Lost"
+      }
+      document.querySelector('.modal').classList.add('opened')
+  }
+  document.querySelector('.modal button').addEventListener('click',reset)
+  function reset(){
+    const els = document.querySelectorAll('.selected')
+    for(el of els){
+      el.classList.remove('selected')
+    }
+    document.querySelector('.modal.opened').classList.remove('opened')
+    document.querySelector('.note').innerHTML = "{{ block.settings.try-again-txt }}"
+  }
+</script>
+{% schema %}
+{
+  "name": "Game",
+  "target": "section",
+  "settings": [
+    {
+      "id":"code",
+      "label":"Discount Code for winner",
+      "type":"text",
+      "default": "DISCOUNT CODE"
+    },
+    {
+      "id":"discount",
+      "label":"Discount in percentage",
+      "type": "number",
+      "default": 10
+    },
+    {
+      "id":"try-again-txt",
+      "label":"Text Message for Try Again",
+      "type":"text",
+      "default":"Try again and win a discount"
+    }
+  ]
+}
+{% endschema %}
+
